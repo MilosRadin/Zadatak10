@@ -12,12 +12,12 @@ import com.ftninformatika.zadatak10.model.NavigationItem;
 
 import java.util.List;
 
-public class DrawerListAdapter extends BaseAdapter {
+public class DrawerListViewAdapter extends BaseAdapter {
 
     private List<NavigationItem> items = null;
     private Activity activity;
 
-    public DrawerListAdapter(List<NavigationItem> items, Activity activity) {
+    public DrawerListViewAdapter(List<NavigationItem> items, Activity activity) {
         this.items = items;
         this.activity = activity;
     }

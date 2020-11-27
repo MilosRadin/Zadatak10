@@ -31,34 +31,39 @@ import retrofit2.Response;
 
 public class SearchFragment extends Fragment {
 
-    private EditText etSearch;
-    private Button bSearch;
     private ListView lvMovies;
 
-    private onListItemClickListener listener;
+    private onItemClickListener listener;
 
     public SearchFragment() {
+        // Required empty public constructor
     }
 
-    private void showMovies(List<Search> movies) {
-        if (movies != null) {
-            SearchListAdapter adapter = new SearchListAdapter(getActivity(), movies);
-            lvMovies.setAdapter(adapter);
-            lvMovies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-                    listener.onListItemClicked(adapter.getItem(position).getImdbID());
-                }
-            });
-        }
+        EditText etTitle = view.findViewById(R.id.editText_Search_Title);
+        Button buttonSearch = view.findViewById(R.id.button_Search);
+        lvMovies = view.findViewById(R.id.listView_Movies_Search);
+
+        buttonSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!etTitle.getText().toString().equals(""))
+                    searchMovies(etTitle.getText().toString());
+            }
+        });
+        return view;
     }
 
+    private void searchMovies(String search) {
 
-    private void getMoviesByTitle(String title) {
         HashMap<String, String> query = new HashMap<>();
         query.put("apikey", RESTService.API_KEY);
-        query.put("s", title);
+        query.put("s", search);
 
         Call<Result> call = RESTService.apiInterface().getMoviesByTitle(query);
         call.enqueue(new Callback<Result>() {
@@ -74,44 +79,50 @@ public class SearchFragment extends Fragment {
                 Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    private void showMovies(List<Search> search) {
+        if (search != null) {
+            SearchListAdapter adapter = new SearchListAdapter(getActivity(), search);
+            lvMovies.setAdapter(adapter);
+            lvMovies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    searchMovieByID(adapter.getItem(position).getImdbID());
+                }
+            });
+        }
+    }
 
-        View view = inflater.inflate(R.layout.fragment_search, container, false);
+    private void searchMovieByID(String id) {
+        HashMap<String, String> query = new HashMap<>();
+        query.put("apikey", RESTService.API_KEY);
+        query.put("i", id);
 
-        EditText etTitle = view.findViewById(R.id.editText_Search_Title);
-        Button buttonSearch = view.findViewById(R.id.button_Search);
-        lvMovies = view.findViewById(R.id.listView_Movies_Search);
-
-
-        bSearch.setOnClickListener(new View.OnClickListener() {
+        Call<Movie> call = RESTService.apiInterface().getMoviesByIMDBID(query);
+        call.enqueue(new Callback<Movie>() {
             @Override
-            public void onClick(View v) {
-
-                if (!etSearch.getText().toString().equals("")) {
-
-                    getMoviesByTitle(etSearch.getText().toString().trim());
-
-                } else {
-                    Toast.makeText(getActivity(), getString(R.string.search_error), Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<Movie> call, Response<Movie> response) {
+                if (response.code() == 200) {
+                    if (response.body() != null) {
+                        listener.onSearchItemClicked(response.body());
+                    }
                 }
             }
+
+            @Override
+            public void onFailure(Call<Movie> call, Throwable t) {
+                Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
-
-        return view;
     }
-
 
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof onListItemClickListener) {
-            listener = (onListItemClickListener) context;
+        if (context instanceof onItemClickListener) {
+            listener = (onItemClickListener) context;
         } else {
-            Toast.makeText(getActivity(), "Morate implementirati interface", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Morate implementirati intefrace", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -121,8 +132,8 @@ public class SearchFragment extends Fragment {
         listener = null;
     }
 
-    public interface onListItemClickListener {
-        void onListItemClicked(String ImdbID);
+    public interface onItemClickListener {
+        void onSearchItemClicked(Movie movie);
     }
 }
 

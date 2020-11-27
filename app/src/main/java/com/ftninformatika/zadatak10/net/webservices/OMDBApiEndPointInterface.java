@@ -15,8 +15,8 @@ public class OMDBApiEndPointInterface {
     public interface OMDBApiEndpointInterface {
         @GET("/")
         Call<Result> getMoviesByTitle(@QueryMap Map<String, String> options);
-
         @GET("/")
-        Call<Movie> getMoviesDetails(@QueryMap Map<String, String> options);
+        Call<Movie> getMoviesByIMDBID(@QueryMap Map<String, String> query);
     }
+
 }
