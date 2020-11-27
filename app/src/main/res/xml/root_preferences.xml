@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Splash Screen">
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="splashscreen_show"
+            android:title="Prikazi splash screen" />
+        <EditTextPreference
+            android:inputType="number"
+            android:key="splashscreen_timeout"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Vreme gasenja splash screen-a"
+            android:dependency="splashscreen_show"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Notifications">
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="toast_show"
+            android:title="Prikazuj Toast" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="nofitication_show"
+            android:title="Prikaazuj Notifikacije" />
+    </PreferenceCategory>
+</PreferenceScreen>
