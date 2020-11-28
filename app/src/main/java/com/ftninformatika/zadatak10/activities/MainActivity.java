@@ -62,6 +62,150 @@ public class MainActivity extends AppCompatActivity implements SearchFragment.on
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        createNotificationChannel();
+
+        setupDrawer();
+        showSearchFragment();
+
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(NOTIF_CHANNEL_ID, "Nas Notif Kanal", importance);
+            channel.setDescription("Opis naseg kanala");
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+
+    private void showNotification(String text) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIF_CHANNEL_ID);
+        builder.setContentTitle("WatchedFilms")
+                .setContentText(text)
+                .setSmallIcon(R.drawable.star_icon);
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.notify(NOTIF_ID, builder.build());
+    }
+
+    private void setupDrawer() {
+        setupDrawerNavigationItems();
+        title = drawerTitle = getTitle();
+        setupDrawerItems();
+
+    }
+
+    private void setupDrawerNavigationItems() {
+        //Moji filmovi, Pretraga, Podešavanja, Obriši sve
+        navigationItems.add(new NavigationItem("Moji Filmovi", "Pogledajte listu odgledanih filmova", R.drawable.star_icon));
+        navigationItems.add(new NavigationItem("Pretraga", "Potrazite film koji ste odgledali", R.drawable.search_icon));
+        navigationItems.add(new NavigationItem("Podesavanja", "Izmenite podesavanja aplikacije", R.drawable.settings_icon));
+        navigationItems.add(new NavigationItem("Obrisi sve", "Obrisite sve odgledane filmove", R.drawable.delete_icon));
+    }
+
+    private void setupDrawerItems() {
+        drawerLayout = findViewById(R.id.drawer_layout);
+        drawerList = findViewById(R.id.leftDrawer);
+
+        DrawerListViewAdapter adapter = new DrawerListViewAdapter(navigationItems, this);
+        drawerList.setAdapter(adapter);
+        drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        showWatchedListFragment();
+                        break;
+                    case 1:
+                        showSearchFragment();
+                        break;
+                    case 2:
+                        showSettingsFragment();
+                        break;
+                    case 3:
+                        deleteAll();
+                        break;
+                }
+                drawerLayout.closeDrawer(drawerList);
+            }
+        });
+    }
+
+    private void deleteAll() {
+        AlertDialog dialog = new Dialog(this).prepareDialog();
+        dialog.show();
+
+        if (watchedListShown) {
+            showWatchedListFragment();
+        }
+     }
+
+
+    private void showWatchedListFragment() {
+        try {
+            List<Movie> watched = getDatabaseHelper().getMovieDao().queryForAll();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            WatchedListFragment fragment = new WatchedListFragment();
+            fragment.setWatched(watched);
+            transaction.replace(R.id.root, fragment);
+            transaction.commit();
+
+            searchShown = false;
+            detailsShown = false;
+            watchedListShown = true;
+            settingsShown = false;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    private void showSearchFragment() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        SearchFragment fragment = new SearchFragment();
+        transaction.replace(R.id.root, fragment);
+        transaction.commit();
+
+        searchShown = true;
+        detailsShown = false;
+        watchedListShown = false;
+        settingsShown = false;
+    }
+
+    private void showDetailsFragment(Movie movie) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        DetailsFragment fragment = new DetailsFragment();
+        fragment.setMovie(movie);
+        transaction.replace(R.id.root, fragment);
+        transaction.commit();
+
+        searchShown = false;
+        detailsShown = true;
+        watchedListShown = false;
+        settingsShown = false;
+    }
+
+    private void showSettingsFragment() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        SettingsFragment fragment = new SettingsFragment();
+        transaction.replace(R.id.root, fragment);
+        transaction.commit();
+
+        searchShown = false;
+        detailsShown = false;
+        watchedListShown = false;
+        settingsShown = true;
+    }
+
+
+    public DatabaseHelper getDatabaseHelper() {
+        if (databaseHelper == null) {
+            databaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
+        }
+        return databaseHelper;
     }
 
     @Override
