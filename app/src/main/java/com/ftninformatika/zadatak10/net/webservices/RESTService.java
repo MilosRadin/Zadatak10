@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RESTService {
 
-    public static final String BASE_URL="https//www.omdbapi.com";
+    public static final String BASE_URL="https://www.omdbapi.com";
     public static final String API_KEY="fad8d90";
 
     public static Retrofit getRetrofitInstance(){
@@ -18,8 +18,8 @@ public class RESTService {
         return retrofit;
     }
 
-    public static OMDBApiEndPointInterface.OMDBApiEndpointInterface apiInterface(){
-        OMDBApiEndPointInterface.OMDBApiEndpointInterface apiService = getRetrofitInstance().create(OMDBApiEndPointInterface.OMDBApiEndpointInterface.class);
+    public static OMDBApiEndPointInterface apiInterface(){
+        OMDBApiEndPointInterface apiService = getRetrofitInstance().create(OMDBApiEndPointInterface.class);
 
         return apiService;
     }

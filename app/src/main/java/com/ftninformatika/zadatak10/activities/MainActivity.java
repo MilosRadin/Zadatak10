@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity implements SearchFragment.on
         }
     }
 
-
     private void showNotification(String text) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIF_CHANNEL_ID);
         builder.setContentTitle("WatchedFilms")
@@ -96,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements SearchFragment.on
         setupDrawerNavigationItems();
         title = drawerTitle = getTitle();
         setupDrawerItems();
+        setupToolbar();
 
     }
 
@@ -134,6 +134,33 @@ public class MainActivity extends AppCompatActivity implements SearchFragment.on
             }
         });
     }
+
+
+    private void setupToolbar() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.menu_icon);
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.show();
+        }
+
+        new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
+            public void onDrawerClosed(View view) {
+                getSupportActionBar().setTitle(title);
+                invalidateOptionsMenu();
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                getSupportActionBar().setTitle(drawerTitle);
+                invalidateOptionsMenu();
+            }
+        };
+    }
+
 
     private void deleteAll() {
         AlertDialog dialog = new Dialog(this).prepareDialog();
@@ -201,6 +228,23 @@ public class MainActivity extends AppCompatActivity implements SearchFragment.on
     }
 
 
+    @Override
+    public void onBackPressed() {
+        if (searchShown) {
+            finish();
+        } else if (detailsShown) {
+            getFragmentManager().popBackStack();
+            showWatchedListFragment();
+        } else if (settingsShown) {
+            getFragmentManager().popBackStack();
+            showSearchFragment();
+        } else if (watchedListShown) {
+            getFragmentManager().popBackStack();
+            showSearchFragment();
+        }
+    }
+
+
     public DatabaseHelper getDatabaseHelper() {
         if (databaseHelper == null) {
             databaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
@@ -208,8 +252,24 @@ public class MainActivity extends AppCompatActivity implements SearchFragment.on
         return databaseHelper;
     }
 
+
     @Override
     public void onSearchItemClicked(Movie movie) {
+        try {
+            Date date = Calendar.getInstance().getTime();
+            DateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy hh:mm:ss");
+            movie.setDateWatched(dateFormat.format(date));
+            movie.setRating(1f);
+            List<Movie> movies = getDatabaseHelper().getMovieDao().queryForAll();
+            if (!movies.contains(movie)) {
+                getDatabaseHelper().getMovieDao().create(movie);
+                showDetailsFragment(movie);
+                Toast.makeText(this, movie.getTitle() + " uspesno upisan", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (SQLException throwables) {
+            Toast.makeText(this, movie.getTitle() + " nije upisan", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
